@@ -61,6 +61,7 @@ class ExtensionTester:
             return False
 
 
+
     # def open_extension_popup(self, extension_id):
     #     popup_url = f"chrome-extension://{extension_id}/popup.html"
     #     self.driver.get(popup_url)
@@ -95,6 +96,6 @@ class ExtensionTester:
     #         EC.element_to_be_clickable((By.XPATH, connect_button_xpath))
     #     ).click()
 
-    def quit_browser(self):
-        if self.driver:
-            self.driver.quit()
+    # def quit_browser(self):
+    #     if self.driver:
+    #         self.driver.quit()

@@ -29,6 +29,7 @@ def test_serp_to_google(browser, url, merchant):
     assert tester.verify_cashback_element(), "Элемент с ID 'monetha-sr' отсутствует на странице."
 
 
+
 # @pytest.mark.parametrize("url", [
 #     "https://www.macys.com/"
 # ])
