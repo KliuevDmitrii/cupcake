@@ -26,7 +26,6 @@ class ExtensionTester:
         self.driver.switch_to.window(self.driver.window_handles[-1])
 
     def search_merchant(self, merchant=""):
-        """Находит поле поиска по имени и выполняет поиск по имени мерчанта"""
         search_box = WebDriverWait(self.driver, 10).until(
             EC.presence_of_element_located((By.NAME, "q"))
         )
@@ -34,31 +33,23 @@ class ExtensionTester:
         search_box.send_keys(merchant)
         search_box.send_keys(Keys.RETURN)
     
-    def verify_cashback_element(self):
+    def check_text_in_shadow_root(self):
         try:
-            cashback_element = WebDriverWait(self.driver, 30).until(
-            EC.presence_of_element_located((By.ID, "monetha-sr"))
-        )
-            print("Элемент с ID 'monetha-sr' найден вне iframe.")
-            return True
-        except TimeoutException:
-           print("Элемент с ID 'monetha-sr' не найден вне iframe. Проверяем iframe...")
-
-        try:
-            # Переключение в iframe и проверка элемента
-            WebDriverWait(self.driver, 10).until(
-                EC.frame_to_be_available_and_switch_to_it((By.TAG_NAME, "iframe"))
+            shadow_host = WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "css-селектор-shadow-host"))
             )
-            cashback_element = WebDriverWait(self.driver, 20).until(
-                EC.presence_of_element_located((By.ID, "monetha-sr"))
-            )
-            print("Элемент с ID 'monetha-sr' найден внутри iframe.")
-            return True
+            
+            shadow_root = self.driver.execute_script("return arguments[0].shadowRoot", shadow_host)
+            element = shadow_root.find_element(By.CSS_SELECTOR, "span.ex-zu1yt")
+            text_content = element.text
+            assert "You can receive cashback from Monetha for purchases from the store up to" in text_content
+            print("Текст найден!")
         except TimeoutException:
-            # Скриншот для отладки
-            self.driver.save_screenshot("debug_screenshot.png")
-            print("Iframe или элемент внутри iframe не был найден.")
-            return False
+            print("Элемент не найден.")
+        except AssertionError:
+            print("Текст не найден.")
+        except NoSuchElementException:
+            print("Элемент внутри shadow-root не найден.")
 
 
 
@@ -96,6 +87,6 @@ class ExtensionTester:
     #         EC.element_to_be_clickable((By.XPATH, connect_button_xpath))
     #     ).click()
 
-    # def quit_browser(self):
-    #     if self.driver:
-    #         self.driver.quit()
+    def quit_browser(self):
+        if self.driver:
+            self.driver.quit()

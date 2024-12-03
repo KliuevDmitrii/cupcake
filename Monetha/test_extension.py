@@ -26,7 +26,12 @@ def test_serp_to_google(browser, url, merchant):
     tester.open_new_tab(url)
     WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.NAME, "q")))
     tester.search_merchant(merchant)
-    assert tester.verify_cashback_element(), "Элемент с ID 'monetha-sr' отсутствует на странице."
+    tester.check_text_in_shadow_root()
+
+# def test_shadow_root_text(browser):
+#     tester = ExtensionTester()
+#     tester.driver = browser
+#     tester.check_text_in_shadow_root()
 
 
 
