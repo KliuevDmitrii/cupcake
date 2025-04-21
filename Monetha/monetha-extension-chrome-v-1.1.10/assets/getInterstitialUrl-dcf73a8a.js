@@ -1,1 +1,0 @@
-import{s as o}from"./constants-0ac025b2.js";const a=(t,e)=>n(r(t))===n(r(e)),r=t=>{try{const{hostname:e}=new URL(t);return e}catch{return t}},n=t=>t.replace("www.",""),c=t=>{const e=o.get("userId");return e?`${t}&u_id=${e}&platform=extension`:t};export{a as c,c as g};
