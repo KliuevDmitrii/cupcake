@@ -1,6 +1,7 @@
 import allure
 import requests
 import json
+import uuid
 
 class MonethaApi:
     """
@@ -12,12 +13,16 @@ class MonethaApi:
         self.token = token
 
     @allure.step("Авторизоваться")
-    def auth_user(self, email, password):
+    def auth_user(self, email, password, platform):
+        device_id = str(uuid.uuid4()).replace("-", "")[:32]
+
         body = {
             "email": email,
-            "password": password
+            "password": password,
+            "device_id": device_id,
+            "platform": platform
         }
-        
+
         path = f"{self.base_url}/user/v1/email/signin"
         headers = {"x-user-authorization": f"Bearer {self.token}"}
 
@@ -31,24 +36,24 @@ class MonethaApi:
             raise ValueError(f"Ошибка декодирования JSON. Ответ API: {resp.text}")
 
         access_token = response_json.get("access_token")
+        refresh_token = response_json.get("refresh_token")
         if access_token:
             self.token = access_token
-            self._update_token_in_file(access_token)
+            self._update_token_in_file(access_token=access_token, refresh_token=refresh_token)
             print("Новый токен сохранён в test_data.json")
+            print("Новый рефреш токен сохранён в test_data.json")
 
         return response_json
 
-    @allure.step("Перезаписать access_token в test_data.json")
-    def _update_token_in_file(self, token: str):
-        try:
-            with open("test_data.json", "r+", encoding="utf-8") as file:
-                data = json.load(file)
-                data["access_token"] = token
-                file.seek(0)
-                json.dump(data, file, indent=2)
-                file.truncate()
-        except Exception as e:
-            print(f"Ошибка при обновлении test_data.json: {e}")
+    @allure.step("Перезаписать access_token и refresh_token в test_data.json")
+    def _update_token_in_file(self, access_token: str, refresh_token: str):
+        with open("test_data.json", "r+", encoding="utf-8") as file:
+            data = json.load(file)
+            data["token"] = access_token
+            data["refresh_token"] = refresh_token
+            file.seek(0)
+            json.dump(data, file, indent=4)
+            file.truncate()
 
     @allure.step("Получить баланс пользователя")
     def get_user_balance(self):

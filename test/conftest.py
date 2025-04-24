@@ -6,12 +6,17 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.firefox.service import Service as FirefoxService
 from selenium.webdriver.chrome.options import Options as ChromeOptions
+from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 import os
 
+from api.monethaAPI import MonethaApi
+from pages.LoginExtPage import LoginExtPage
 from configuration.ConfigProvider import ConfigProvider
 from testdate.DataProvider import DataProvider
 
@@ -96,3 +101,25 @@ def browser():
 @pytest.fixture
 def test_data():
         return DataProvider()
+
+@pytest.fixture
+def authorized_api_client():
+    config = ConfigProvider()
+    data_provider = DataProvider()
+
+    base_url = config.get("api", "base_url")
+    email = data_provider.get("email")
+    password = data_provider.get("pass")
+    platform = data_provider.get("platform")
+
+    temp_api = MonethaApi(base_url, token="")
+
+    with allure.step("Авторизация пользователя через API"):
+        auth_response = temp_api.auth_user(email, password, platform)
+
+        if "access_token" not in auth_response:
+            raise Exception(f"Авторизация не удалась: {auth_response}")
+
+        token = auth_response["access_token"]
+    
+    return MonethaApi(base_url, token)
