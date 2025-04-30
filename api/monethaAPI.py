@@ -28,7 +28,7 @@ class MonethaApi:
 
         resp = requests.post(path, json=body, headers=headers)
 
-        print(f"Status Code: {resp.status_code}, Response Text: {resp.text}")
+        # print(f"Status Code: {resp.status_code}, Response Text: {resp.text}")
 
         try:
             response_json = resp.json()
@@ -57,28 +57,28 @@ class MonethaApi:
 
     @allure.step("Получить баланс пользователя")
     def get_user_balance(self):
-        url = f"{self.base_url}/wallet/balance"
+        url = f"{self.base_url}/affiliates/v1/wallet/balance"
         headers = {"x-user-authorization": f"Bearer {self.token}"}
         resp = requests.get(url, headers=headers)
         return resp.json()
 
     @allure.step("Получить прогресс пользователя")
     def get_user_progress(self):
-        url = f"{self.base_url}/user/progress"
+        url = f"{self.base_url}/affiliates/v1/user/progress"
         headers = {"x-user-authorization": f"Bearer {self.token}"}
         resp = requests.get(url, headers=headers)
         return resp.json()
     
     @allure.step("Получить список всех магазинов")
     def get_all_merchants(self):
-        url = f"{self.base_url}/merchants"
+        url = f"{self.base_url}/affiliates/v1/merchants"
         headers = {"x-user-authorization": f"Bearer {self.token}"}
         resp = requests.get(url, headers=headers)
         return resp.json()
 
     @allure.step("Получить топ магазинов по кешбэку")
     def get_top_merchants(self, source="web"):
-        url = f"{self.base_url}/merchants/high-rewards"
+        url = f"{self.base_url}/affiliates/v1/merchants/high-rewards?source=web"
         headers = {"x-user-authorization": f"Bearer {self.token}"}
         params = {"source": source}
         resp = requests.get(url, headers=headers, params=params)
@@ -93,7 +93,7 @@ class MonethaApi:
     
     @allure.step("Добавить магазин в кешбэк wishlist")
     def add_to_cashback_wishlist(self, store_domain: str):
-        url = f"{self.base_url}/cashback-wishlist"
+        url = f"{self.base_url}/affiliates/v1/cashback-wishlist"
         headers = {
             "x-user-authorization": f"Bearer {self.token}",
             "Content-Type": "application/json"

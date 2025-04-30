@@ -2,6 +2,8 @@ from socket import timeout
 import pytest
 import allure
 import time
+import random
+from urllib.parse import urlparse
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.firefox.service import Service as FirefoxService
@@ -103,7 +105,7 @@ def test_data():
         return DataProvider()
 
 @pytest.fixture
-def authorized_api_client():
+def authorized_api_client() -> MonethaApi:
     config = ConfigProvider()
     data_provider = DataProvider()
 
@@ -123,3 +125,68 @@ def authorized_api_client():
         token = auth_response["access_token"]
     
     return MonethaApi(base_url, token)
+
+@pytest.fixture
+def random_merchant(authorized_api_client) -> dict:
+    merchants = authorized_api_client.get_all_merchants()
+
+    websites_with_percent = []
+    for m in merchants:
+        website = m.get("website")
+        percent = m.get("points", {}).get("percent", 1)
+        if website:
+            websites_with_percent.append((website, percent))
+
+    if not websites_with_percent:
+        raise ValueError("Нет доступных сайтов у мерчантов")
+
+    raw_url, raw_percent = random.choice(websites_with_percent)
+
+    parsed_url = urlparse(raw_url).netloc or urlparse(raw_url).path
+    clean_website = parsed_url.replace(".", " ").replace("/", " ").strip()
+
+    cashback_value = round(raw_percent * 100, 1) if raw_percent else 0
+    cashback_percent = f"{cashback_value}%"
+
+    print(f"Выбранный URL: {raw_url}, Процент: {cashback_percent}")
+
+    return {
+        "clean_website": clean_website,
+        "cashback_percent": cashback_percent,
+        "merchant_url": raw_url,
+        "merchant_name": next(m.get("name") for m in merchants if m.get("website") == raw_url)
+    }
+
+@pytest.fixture
+def random_merchants(authorized_api_client) -> list:
+    merchants = authorized_api_client.get_all_merchants()
+    websites_with_percent = []
+    for m in merchants:
+        website = m.get("website")
+        percent = m.get("points", {}).get("percent", 1)
+        name = m.get("name")
+        if website:
+            websites_with_percent.append((website, percent, name))
+
+    if not websites_with_percent:
+        raise ValueError("Нет доступных сайтов у мерчантов")
+
+    selected_merchants = random.sample(websites_with_percent, 4)
+
+    merchant_data_list = []
+    for raw_url, raw_percent, name in selected_merchants:
+        parsed_url = urlparse(raw_url).netloc or urlparse(raw_url).path
+        clean_website = parsed_url.replace(".", " ").replace("/", " ").strip()
+
+        cashback_value = round(raw_percent * 100, 1) if raw_percent else 0
+        cashback_percent = f"{cashback_value}%"
+
+        print(f"Выбранный URL: {raw_url}, Процент: {cashback_percent}")
+        
+        merchant_data_list.append({
+            "clean_website": clean_website,
+            "cashback_percent": cashback_percent,
+            "merchant_url": raw_url,
+            "merchant_name": name
+        })
+    return merchant_data_list
