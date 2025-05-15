@@ -47,7 +47,10 @@ class ExtensionPage:
 
         def cashback_matches(driver):
             try:
-                elements = shadow.find_elements(By.CSS_SELECTOR, "span.ex-o1wn3")
+                elements = shadow.find_element(
+                By.CSS_SELECTOR,
+                'div[id="monetha-sr"] div span'
+                )
                 for el in elements:
                     text = el.text.strip()
                     if expected_cashback in text:
@@ -64,7 +67,10 @@ class ExtensionPage:
     @allure.step("Получить текст с кэшбэком из попапа")
     def get_cashback_text(self) -> str:
         shadow = self.get_shadow_root()
-        elements = shadow.find_elements(By.CSS_SELECTOR, "span.ex-o1wn3")
+        elements = shadow.find_element(
+        By.CSS_SELECTOR,
+        'div[id="monetha-sr"] div span'
+        )
         for el in elements:
             if "%" in el.text:
                 return el.text.strip()
@@ -82,7 +88,10 @@ class ExtensionPage:
 
             shadow_root = shadow_host.shadow_root
 
-            cashback_element = shadow_root.find_element(By.CSS_SELECTOR, "span.ex-o1wn3")
+            cashback_element = shadow_root.find_element(
+            By.CSS_SELECTOR,
+            'div[id="monetha-sr"] div span'
+            )
             actual_cashback = cashback_element.text.strip()
 
             print(f"[DEBUG] Найден кэшбэк в попапе: {actual_cashback}")

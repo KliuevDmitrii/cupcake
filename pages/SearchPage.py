@@ -70,7 +70,7 @@ class SearchPage:
 
     @allure.step("Ждём появление серпа")
     def wait_for_serp(self):
-        sleep(3)
+        sleep(5)
         wait = WebDriverWait(self.__driver, 15)
         wait.until(EC.presence_of_element_located((By.XPATH, '//div[contains(@class, "shadow-root-monetha")]')))
 
@@ -86,7 +86,10 @@ class SearchPage:
 
             shadow_root = shadow_host.shadow_root
             
-            cashback_element = shadow_root.find_element(By.CSS_SELECTOR, "span.ex-o1wn3")
+            cashback_element = shadow_root.find_element(
+                By.CSS_SELECTOR,
+                '#monetha-sr span span'
+            )
             actual_cashback = cashback_element.text.strip()
 
             print(f"Найденный процент кэшбэка: {actual_cashback}")
