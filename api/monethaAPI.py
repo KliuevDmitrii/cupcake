@@ -28,8 +28,6 @@ class MonethaApi:
 
         resp = requests.post(path, json=body, headers=headers)
 
-        # print(f"Status Code: {resp.status_code}, Response Text: {resp.text}")
-
         try:
             response_json = resp.json()
         except json.JSONDecodeError:
@@ -78,7 +76,7 @@ class MonethaApi:
 
     @allure.step("Получить топ магазинов по кешбэку")
     def get_top_merchants(self, source="web"):
-        url = f"{self.base_url}/affiliates/v1/merchants/high-rewards?source=web"
+        url = f"{self.base_url}/affiliates/v1/merchants/high-rewards?source=extension"
         headers = {"x-user-authorization": f"Bearer {self.token}"}
         params = {"source": source}
         resp = requests.get(url, headers=headers, params=params)
@@ -86,7 +84,7 @@ class MonethaApi:
 
     @allure.step("Получить wishlist пользователя")
     def get_wishlist(self):
-        url = f"{self.base_url}/merchants/wishlist"
+        url = f"{self.base_url}/affiliates/v1/merchants/wishlist"
         headers = {"x-user-authorization": f"Bearer {self.token}"}
         resp = requests.get(url, headers=headers)
         return resp.json()

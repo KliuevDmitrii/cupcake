@@ -1,5 +1,6 @@
 import allure
 from time import sleep
+import pytest
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -23,17 +24,28 @@ class SearchPage:
     def go(self):
         self.__driver.get(self.__url)
         self.__driver.refresh()
-        WebDriverWait(self.__driver, 20).until(
-        EC.presence_of_element_located((By.XPATH, '//textarea[@id="sb_form_q"]'))
-    )
 
-    @allure.step("Ввести наименование мерчанта и нажать поиск")
+        try:
+            WebDriverWait(self.__driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, '//textarea[@id="sb_form_q"]'))
+            )
+        except TimeoutException:
+            try:
+                WebDriverWait(self.__driver, 10).until(
+                    EC.presence_of_element_located((By.XPATH, '//input[@id="ybar-sbq"]'))
+                )
+            except TimeoutException:
+                screenshot = self.__driver.get_screenshot_as_png()
+                allure.attach(screenshot, name="search_input_not_found", attachment_type=allure.attachment_type.PNG)
+                pytest.fail("Не удалось найти поле ввода поиска ни по первому, ни по второму локатору")
+
+    @allure.step("Ввести наименование мерчанта и нажать поиск в поисковике")
     def enter_merch_name(self, merch_name: str):
-        wait = WebDriverWait(self.__driver, 15)
-        element = wait.until(EC.presence_of_element_located((By.XPATH, '//textarea[@id="sb_form_q"]')))
-        element.send_keys(merch_name)
-        sleep(2)
-        element.send_keys(Keys.ENTER)
+        search_input = self.__get_search_input_element()
+        search_input.clear()
+        search_input.send_keys(merch_name)
+        sleep(3)
+        search_input.send_keys(Keys.ENTER)
 
     def clear_search_field(self):
         search_input = self.__get_search_input_element()
@@ -41,10 +53,24 @@ class SearchPage:
         search_input.send_keys(Keys.DELETE)
 
     def __get_search_input_element(self):
-        return self.__driver.find_element(By.XPATH, '//textarea[@id="sb_form_q"]')
+        wait = WebDriverWait(self.__driver, 10)
+        try:
+            return wait.until(
+                EC.presence_of_element_located((By.XPATH, '//textarea[@id="sb_form_q"]'))
+            )
+        except TimeoutException:
+            try:
+                return wait.until(
+                    EC.presence_of_element_located((By.XPATH, '//input[@id="ybar-sbq"]'))
+                )
+            except TimeoutException:
+                screenshot = self.__driver.get_screenshot_as_png()
+                allure.attach(screenshot, name="search_input_not_found", attachment_type=allure.attachment_type.PNG)
+                pytest.fail("Не удалось найти поле поиска по ни одному из ожидаемых локаторов.")
 
     @allure.step("Ждём появление серпа")
     def wait_for_serp(self):
+        sleep(3)
         wait = WebDriverWait(self.__driver, 15)
         wait.until(EC.presence_of_element_located((By.XPATH, '//div[contains(@class, "shadow-root-monetha")]')))
 
@@ -60,7 +86,7 @@ class SearchPage:
 
             shadow_root = shadow_host.shadow_root
             
-            cashback_element = shadow_root.find_element(By.CSS_SELECTOR, "span.ex-qn03r")
+            cashback_element = shadow_root.find_element(By.CSS_SELECTOR, "span.ex-o1wn3")
             actual_cashback = cashback_element.text.strip()
 
             print(f"Найденный процент кэшбэка: {actual_cashback}")

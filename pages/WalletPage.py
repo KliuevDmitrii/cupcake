@@ -1,4 +1,5 @@
 import allure
+from time import sleep
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -20,33 +21,33 @@ class WalletPage:
 
     @allure.step("Перейти на страницу кошелька")
     def go(self):
+        sleep(2)
         self.__driver.get(self.__url)
-        self.__driver.refresh()
 
-    @allure.step("Получение данных пользователя: points, badge и tier score")
+    @allure.step("Получение данных пользователя: points, level name и tier score")
     def get_user_account_data(self):
         data = {}
 
-        # Получение points
         try:
             points_el = self.__driver.find_element(By.CLASS_NAME, "points-wrapper").find_element(By.XPATH, ".//div")
-            data['points'] = points_el.text.strip()
+            points_text = points_el.text.strip()
+            data['points'] = int(''.join(filter(str.isdigit, points_text)))
         except Exception:
             data['points'] = None
 
-        # Получение badge
         try:
-            badge_el = self.__driver.find_element(By.CLASS_NAME, "points-button-badge")
-            data['badge'] = badge_el.text.strip()
+            level_name = self.__driver.find_element(By.CLASS_NAME, "tier-badge-text")
+            data['level_name'] = level_name.text.strip()
         except Exception:
-            data['badge'] = None
+            data['level_name'] = None
 
-        # Получение tier score
         try:
             tier_score_el = self.__driver.find_element(By.CLASS_NAME, "tier-score-wrapper")
-            data['tier_score'] = tier_score_el.text.strip()
+            tier_score_text = tier_score_el.text.strip()
+            data['tier_score'] = int(''.join(filter(str.isdigit, tier_score_text)))
         except Exception:
             data['tier_score'] = None
 
+        print(f"WEB DATA: {data}")
         return data
-    
+        
