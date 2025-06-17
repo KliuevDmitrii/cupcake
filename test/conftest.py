@@ -26,7 +26,7 @@ from testdate.DataProvider import DataProvider
 @pytest.fixture
 def browser_with_extension():
     '''
-    Фикстура для настройки браузера с расширением.
+    Фикстура для настройки браузера с расширением (Chrome, Chromium, Firefox).
     '''
     with allure.step("Открыть и настроить браузер"):
         config = ConfigProvider()
@@ -35,15 +35,26 @@ def browser_with_extension():
         chrome_extension_path = config.get("ui", "chrome_extension_path", fallback=None)
         ff_extension_path = config.get("ui", "ff_extension_path", fallback=None)
 
-        if browser_name == "chrome":
+        if browser_name in ["chrome", "chromium"]:
             chrome_options = ChromeOptions()
 
+            # Путь к расширению
             if chrome_extension_path and os.path.isdir(chrome_extension_path):
                 abs_path = os.path.abspath(chrome_extension_path)
                 chrome_options.add_argument(f"--load-extension={abs_path}")
-                print(f"Расширение подключено: {abs_path}")
+                chrome_options.add_argument("--disable-features=ExtensionsToolbarMenu")
+                print(f"Расширение подключено (папка): {abs_path}")
             elif chrome_extension_path:
                 print(f"Неверный путь к расширению: {chrome_extension_path}")
+
+            # Важно: флаги против DevToolsActivePort ошибки
+            chrome_options.add_argument("--no-sandbox")
+            chrome_options.add_argument("--disable-dev-shm-usage")
+            chrome_options.add_argument("--remote-debugging-port=9222")
+            chrome_options.add_experimental_option("detach", True)  # окно остаётся открытым
+
+            if browser_name == "chromium":
+                chrome_options.binary_location = "/usr/bin/chromium-browser"
 
             driver = webdriver.Chrome(
                 service=ChromeService(ChromeDriverManager().install()),
@@ -64,7 +75,6 @@ def browser_with_extension():
                 print(f"Расширение установлено: {abs_path}")
             elif ff_extension_path:
                 print(f"Неверный путь к расширению: {ff_extension_path}")
-
         else:
             raise ValueError(f"Неизвестный браузер: {browser_name}")
 
